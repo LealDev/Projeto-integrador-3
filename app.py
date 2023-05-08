@@ -20,8 +20,8 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 cidades = ['São Paulo', 'Rio de Janeiro',
            'Belo Horizonte', 'Curitiba', 'Fortaleza']
 dados = {'Cidade': cidades,
-         'População': np.random.randint(100000, 500000, size=len(cidades)),
-         'PIB': np.random.randint(1000000000, 10000000000, size=5, dtype=np.int64),
+         'População': np.random.randint(25635, 652403, size=len(cidades)),
+         'PIB': np.random.randint(15248652, 26352145, size=5, dtype=np.int64),
          'IDH': np.round(np.random.uniform(0.5, 1, size=len(cidades)), 2)}
 
 # Criar uma função para o menu HOME
@@ -112,14 +112,83 @@ def regioes():
     st.pyplot(fig)
 
 
+#Cria função página Universidades
+def universidade():
+    st.title("Dados por universidade")
+    st.write("Aqui estão os dados agrupados por universidades.")
+    st.write('')
+
+#Cria o DataFrame das universidades
+    dados_universidade = pd.DataFrame({'Universidade': ['USP', 'UNICAMP','UFMG', 'UFRJ','UNESP', 'UFES','UFRGS'],
+                                   'População':[152365,111236,132560,125404,121056,114202,110236]})
+    dados_universidade = dados_universidade.sort_values(by='Universidade')
+
+#Cria o gráfico
+    fig, ax = plt.subplots(figsize=(4,3))
+    ax.bar(dados_universidade['Universidade'],
+           dados_universidade['População'])
+    ax.set_ylabel('População')
+    ax.set_xticklabels(dados_universidade['Universidade'], rotation=90)
+
+#Exibe o gráfico
+    st.pyplot(fig)
+
+#Cria a função página Curso
+def curso():
+    st.title("Dados por curso")
+    st.write("Aqui estão os dados agrupados por curso.")
+    st.write('')
+
+#Cria o DataFrame dos cursos
+    dados_curso = pd.DataFrame({'Curso': ['Medicina', 'Sisitemas de Informação','Marketing', 'Engenharia Civil','Direito', 'Administração','COntábeis'],
+                                   'População':[152365,111236,132560,125404,121056,114202,110236]})
+    dados_curso = dados_curso.sort_values(by='Curso')
+
+#Cria o gráfico
+    fig, ax = plt.subplots(figsize=(4,3))
+    ax.bar(dados_curso['Curso'],
+           dados_curso['População'])
+    ax.set_ylabel('População')
+    ax.set_xticklabels(dados_curso['Curso'], rotation=85)
+
+#Exibe o gráfico
+    st.pyplot(fig)
+
+    #Cria a função página Distribuição por idade
+def idade():
+    st.title("Dados por Idade")
+    st.write("Aqui estão os dados agrupados por idade.")
+    st.write('')
+
+#Cria o DataFrame das idades
+    dados_idade = pd.DataFrame({'Idade': ['18','20','25','30','32','52','40'],
+                                'População':[12540,11230,10360,15962,15350,14650,10230]})
+    
+    
+#Cria o gráfico
+    fig, ax = plt.subplots()
+    ax.bar(dados_idade['Idade'],
+           dados_idade['População'], color='orange')
+    ax.set_ylabel('População')
+    ax.set_xticklabels(dados_idade['Idade'], rotation=85)
+
+#Exibe o gráfico
+    st.pyplot(fig)
+
 # Criar o menu de navegação do aplicativo
-menu = ['Home', 'Regiões']
+menu = ['Dados Gerais', 'Regiões','Universidade', 'Cursos', 'Distribuição por idade']
 pagina = st.sidebar.selectbox("Selecione uma página:", menu)
 
 # Exibir a página selecionada
-if pagina == 'Home':
+if pagina == 'Dados Gerais':
     home()
 elif pagina == 'Regiões':
     regioes()
+elif pagina == "Universidade":
+    universidade()
+elif pagina == "Cursos":
+    curso()
+elif pagina == "Distribuição por idade":
+    idade()
 
 # Path: Sisu\app.py
