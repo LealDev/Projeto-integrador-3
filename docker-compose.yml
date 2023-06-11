@@ -1,0 +1,26 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: prouni
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./prouni_2005_2019.csv:/var/lib/postgresql/dados/prouni_2005_2019.csv
+    ports:
+      - '5432:5432'
+    restart: always
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamlit
+    ports:
+      - '8501:8501'
+    depends_on:
+      - postgres
+    restart: always
