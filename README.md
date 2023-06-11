@@ -16,7 +16,7 @@ Esse é um projeto construido em python e postgres, porém para que a execução
 
 Após o download da base é necessário que ela esteja na raiz do projeto, junto dos arquivos `docker-compose.yml` e `Dockerfile`
 
-Uma vez que a base de dados esteja no local correto basta utilizar o comando abaixo
+Uma vez que a base de dados esteja no local correto basta utilizar o comando abaixo na **raiz do projeto**.
 
 ```
 docker-compose up -d
