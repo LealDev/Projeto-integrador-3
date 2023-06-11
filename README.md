@@ -28,8 +28,13 @@ Quando iniciar o sistema, basta aguardar que a página será atualizada quando o
 ## Componentes:
 
 **- Allan Jones da Silva Jesus**
+
 **- Christiano Augusto Betzel Lemke de Resende**
+
 **- Emanuel Nascimento leal**
+
 **- Igor Paraiso Demuner**
+
 **- Lucas Dalvi Rodrigues**
+
 **- Rodrigo Andreatta Vieira**
