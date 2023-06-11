@@ -1,5 +1,7 @@
 # Projeto Integrador 3
 
+Essa é a documentação básica para execução da análise feita com base nos dados do prouni
+
 # Como inicializar esse projeto
 
 Esse é um projeto construido em python e postgres, porém para que a execução seja feita de forma mais simples, os códigos estão em containers docker.
