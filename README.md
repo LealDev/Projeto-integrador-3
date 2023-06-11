@@ -10,9 +10,9 @@ Esse é um projeto construido em python e postgres, porém para que a execução
 
 **- Docker instalado no computador**
 
-**Por se tratar de uma base de dados grande é necessário fazer o download dos dados na origem**
+**- Baixar os dados na origem (baixar o arquivo csv no link abaixo)**
 
-### [Link para download da base de dados](https://www.kaggle.com/datasets/lfarhat/brasil-students-scholarship-prouni-20052019)
+[Link para download da base de dados](https://www.kaggle.com/datasets/lfarhat/brasil-students-scholarship-prouni-20052019)
 
 Após o download da base é necessário que ela esteja na raiz do projeto, junto dos arquivos `docker-compose.yml` e `Dockerfile`
 
