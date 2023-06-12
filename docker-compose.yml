@@ -24,3 +24,5 @@ services:
     depends_on:
       - postgres
     restart: always
+    volumes:
+      - ./sql:/var/streamlit/scripts/
