@@ -44,12 +44,10 @@ def home():
         cur = conn.cursor()
 
         # Fetch data from the database
-        cur.execute("SELECT * FROM public.curso LIMIT 10")
+        cur.execute("SELECT * FROM public.universidade LIMIT 10")
         results = cur.fetchall()
 
         # Close the database connection
-        cur.close()
-        conn.close()
 
         # Display the fetched data in Streamlit
         st.write("Fetched Data:")
@@ -63,7 +61,8 @@ def home():
         # Dividindo a tela em duas colunas
         col1, col2 = st.columns(2)
 
-        # Gráfico de barra com a população das cidades
+        # Gráfico de barra com tipo de bolsa
+
         with col1:
             fig1, ax1 = plt.subplots()
             ax1.bar(dados['Cidade'], dados['População'])
@@ -71,10 +70,17 @@ def home():
             ax1.set_xticklabels(dados['Cidade'], rotation=90)
             st.pyplot(fig1)
 
-        # Gráfico de barra com o PIB das cidades
+        # Gráfico de barra com modalidade de ensino
+
+        query = open('/var/streamlit/scripts/modalidade_de_ensino.sql', 'r')
+        modalidade = query.read()
+        query.close()
+        cur.execute(modalidade)
+        result_modalidade = cur.fetchall()
+
         with col2:
             fig2, ax2 = plt.subplots()
-            ax2.bar(dados['Cidade'], dados['PIB'])
+            ax2.bar(result_modalidade)
             ax2.set_ylabel('PIB')
             ax2.set_xticklabels(dados['Cidade'], rotation=90)
             st.pyplot(fig2)
@@ -82,7 +88,7 @@ def home():
         # Dividindo a tela em duas colunas
         col3, col4 = st.columns(2)
 
-        # Gráfico de barra com o IDH das cidades
+        # Gráfico de barra com raça dos beneficiários
         with col3:
             fig3, ax3 = plt.subplots()
             ax3.bar(dados['Cidade'], dados['IDH'])
@@ -90,7 +96,7 @@ def home():
             ax3.set_xticklabels(dados['Cidade'], rotation=90)
             st.pyplot(fig3)
 
-        # Gráfico de barra com a média da população, PIB e IDH por região
+        # Gráfico de barra com Sexo do beneficiário
         dados_regiao = pd.DataFrame({'Região': ['Sudeste', 'Sudeste', 'Sul', 'Nordeste', 'Sul'],
                                     'População': dados['População'],
                                      'PIB': dados['PIB'],
@@ -107,11 +113,40 @@ def home():
             ax4.legend()
             st.pyplot(fig4)
 
+        col5, col6 = st.columns(2)
+
+        # Gráfico com Turno do curso
+        with col5:
+            fig5, ax5 = plt.subplots()
+            ax5.bar(dados_regiao['Região'],
+                    dados_regiao['População'], label='População')
+            ax5.bar(dados_regiao['Região'], dados_regiao['PIB'], label='PIB')
+            ax5.bar(dados_regiao['Região'], dados_regiao['IDH'], label='IDH')
+            ax5.set_ylabel('Média')
+            ax5.legend()
+            st.pyplot(fig5)
+
+        # Gráfico com PCD ou não
+        with col6:
+            fig6, ax6 = plt.subplots()
+            ax6.bar(dados_regiao['Região'],
+                    dados_regiao['População'], label='População')
+            ax6.bar(dados_regiao['Região'], dados_regiao['PIB'], label='PIB')
+            ax6.bar(dados_regiao['Região'], dados_regiao['IDH'], label='IDH')
+            ax6.set_ylabel('Média')
+            ax6.legend()
+            st.pyplot(fig6)
+
+        cur.close()
+        conn.close()
+
     except:
         st.write("Servidor de banco de dados iniciando, por favor aguarde")
         count = st_autorefresh(interval=5000, key='DataFrameRefresh')
         st.write("A página será atualizada assim que o servidor estiver funcionando")
         st.write(count)
+
+    
 
 
 # Criar uma função para a página Regiões
