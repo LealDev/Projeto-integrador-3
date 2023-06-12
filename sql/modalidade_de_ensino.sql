@@ -1,0 +1,6 @@
+SELECT
+    COUNT(*) AS total_linhas,
+    SUM(CASE WHEN MODALIDADE_ENSINO_BOLSA = 'PRESENCIAL' THEN 1 ELSE 0 END) AS presencial,
+    SUM(CASE WHEN MODALIDADE_ENSINO_BOLSA = 'EAD' THEN 1 ELSE 0 END) AS ead
+FROM
+    public.universidade;
