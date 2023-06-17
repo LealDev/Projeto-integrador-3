@@ -26,132 +26,140 @@ hide_st_style = """
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-
-# Criando dados aleatórios para o exemplo
-cidades = ['São Paulo', 'Rio de Janeiro',
-           'Belo Horizonte', 'Curitiba', 'Fortaleza']
-dados = {'Cidade': cidades,
-         'População': np.random.randint(25635, 652403, size=len(cidades)),
-         'PIB': np.random.randint(15248652, 26352145, size=5, dtype=np.int64),
-         'IDH': np.round(np.random.uniform(0.5, 1, size=len(cidades)), 2)}
-
 # Criar uma função para o menu HOME
 
+def trata_resposta(resultado):
+    indice = []
+    dados = []
+    for row in resultado:
+        indice.append(row[0])
+        dados.append(row[1])
+    return indice, dados
 
 def home():
+
+    querys = []
+    caminhos = [
+        '/var/streamlit/scripts/modalidade_de_ensino.sql', 
+        '/var/streamlit/scripts/indice_pcd.sql', 
+        '/var/streamlit/scripts/indice_racial.sql', 
+        '/var/streamlit/scripts/indice_sexo.sql', 
+        '/var/streamlit/scripts/tipo_de_bolsa.sql', 
+        '/var/streamlit/scripts/turno_bolsa.sql']
+    nome_query = ['modalidade', 
+                  'pcd', 
+                  'raca', 
+                  'sexo', 
+                  'tipo_bolsa', 
+                  'turno_bolsa']
+    query_result = []
+    for path in caminhos:
+        find_file = open(path, 'r')
+        querys.append(find_file.read())
+        find_file.close()
+
     try:
         conn = psycopg2.connect(**db_params)
         cur = conn.cursor()
 
-        # Fetch data from the database
-        cur.execute("SELECT * FROM public.universidade LIMIT 10")
-        results = cur.fetchall()
-
+        for query in querys:
+            cur.execute(query)
+            # Fetch data from the database
+            query_result.append(cur.fetchall())
+        
         # Close the database connection
-
-        # Display the fetched data in Streamlit
-        st.write("Fetched Data:")
-        for row in results:
-            st.write(row)
-
-        st.title("Panorama geral")
-        st.write("Aqui está um resumo dos dados das cidades.")
-        st.write('')
-
-        # Dividindo a tela em duas colunas
-        col1, col2 = st.columns(2)
-
-        # Gráfico de barra com tipo de bolsa
-
-        with col1:
-            fig1, ax1 = plt.subplots()
-            ax1.bar(dados['Cidade'], dados['População'])
-            ax1.set_ylabel('População')
-            ax1.set_xticklabels(dados['Cidade'], rotation=90)
-            st.pyplot(fig1)
-
-        # Gráfico de barra com modalidade de ensino
-
-        query = open('/var/streamlit/scripts/modalidade_de_ensino.sql', 'r')
-        modalidade = query.read()
-        query.close()
-        cur.execute(modalidade)
-        result_modalidade = cur.fetchall()
-
-        with col2:
-            fig2, ax2 = plt.subplots()
-            ax2.bar(result_modalidade)
-            ax2.set_ylabel('PIB')
-            ax2.set_xticklabels(dados['Cidade'], rotation=90)
-            st.pyplot(fig2)
-
-        # Dividindo a tela em duas colunas
-        col3, col4 = st.columns(2)
-
-        # Gráfico de barra com raça dos beneficiários
-        with col3:
-            fig3, ax3 = plt.subplots()
-            ax3.bar(dados['Cidade'], dados['IDH'])
-            ax3.set_ylabel('IDH')
-            ax3.set_xticklabels(dados['Cidade'], rotation=90)
-            st.pyplot(fig3)
-
-        # Gráfico de barra com Sexo do beneficiário
-        dados_regiao = pd.DataFrame({'Região': ['Sudeste', 'Sudeste', 'Sul', 'Nordeste', 'Sul'],
-                                    'População': dados['População'],
-                                     'PIB': dados['PIB'],
-                                     'IDH': dados['IDH']})
-        dados_regiao = dados_regiao.groupby('Região').mean().reset_index()
-
-        with col4:
-            fig4, ax4 = plt.subplots()
-            ax4.bar(dados_regiao['Região'],
-                    dados_regiao['População'], label='População')
-            ax4.bar(dados_regiao['Região'], dados_regiao['PIB'], label='PIB')
-            ax4.bar(dados_regiao['Região'], dados_regiao['IDH'], label='IDH')
-            ax4.set_ylabel('Média')
-            ax4.legend()
-            st.pyplot(fig4)
-
-        col5, col6 = st.columns(2)
-
-        # Gráfico com Turno do curso
-        with col5:
-            fig5, ax5 = plt.subplots()
-            ax5.bar(dados_regiao['Região'],
-                    dados_regiao['População'], label='População')
-            ax5.bar(dados_regiao['Região'], dados_regiao['PIB'], label='PIB')
-            ax5.bar(dados_regiao['Região'], dados_regiao['IDH'], label='IDH')
-            ax5.set_ylabel('Média')
-            ax5.legend()
-            st.pyplot(fig5)
-
-        # Gráfico com PCD ou não
-        with col6:
-            fig6, ax6 = plt.subplots()
-            ax6.bar(dados_regiao['Região'],
-                    dados_regiao['População'], label='População')
-            ax6.bar(dados_regiao['Região'], dados_regiao['PIB'], label='PIB')
-            ax6.bar(dados_regiao['Região'], dados_regiao['IDH'], label='IDH')
-            ax6.set_ylabel('Média')
-            ax6.legend()
-            st.pyplot(fig6)
-
         cur.close()
         conn.close()
-
     except:
-        st.write("Servidor de banco de dados iniciando, por favor aguarde")
-        count = st_autorefresh(interval=5000, key='DataFrameRefresh')
-        st.write("A página será atualizada assim que o servidor estiver funcionando")
-        st.write(count)
+        st.write("aguarde")
 
+    resultado = dict(zip(nome_query, query_result))
+
+
+
+    # Display the fetched data in Streamlit
+    st.title("Panorama geral")
+    st.write("Aqui está um resumo dos dados das bolsas ofertadas.")
+    st.write('')
+
+    # Dividindo a tela em duas colunas
+    graph_tipo_bolsa, graph_modalidade = st.columns(2)
     
+    
+    # Gráfico de barra com tipo de bolsa
+    tipo_bolsa, quant_tipo_bolsa = trata_resposta(resultado['tipo_bolsa'])
+    with graph_tipo_bolsa:
+        fig1, ax1 = plt.subplots()
+        graph1 = ax1.bar(tipo_bolsa, quant_tipo_bolsa)
+        ax1.set_ylabel('Total de bolsas')
+        ax1.set_xticklabels(tipo_bolsa, rotation=45)
+        ax1.set_title("Tipo de bolsa ofertada")
+        ax1.bar_label(graph1)
+        st.pyplot(fig1)
+
+    # Gráfico de barra com modalidade de ensino
+    modalidade, quant_modalidade = trata_resposta(resultado['modalidade'])
+    with graph_modalidade:
+        fig2, ax2 = plt.subplots()
+        graph2 = ax2.bar(modalidade, quant_modalidade)
+        ax2.set_ylabel('Total de bolsas')
+        ax2.set_xticklabels(modalidade, rotation=45)
+        ax2.set_title("Modalidade de bolsa ofertada")
+        ax2.bar_label(graph2)
+        st.pyplot(fig2)
+
+    # Dividindo a tela em duas colunas
+    graph_raca, graph_sexo = st.columns(2)
+
+    # Gráfico de barra com raça dos beneficiários
+    raca, quant_raca = trata_resposta(resultado['raca'])
+    with graph_raca:
+        fig3, ax3 = plt.subplots()
+        graph3 = ax3.bar(raca, quant_raca)
+        ax3.set_ylabel('Total de bolsas')
+        ax3.set_xticklabels(raca, rotation=45)
+        ax3.set_title("Distribuição racial dos baneficiados")
+        ax3.bar_label(graph3)
+        st.pyplot(fig3)
+
+    # Gráfico de barra com Sexo do beneficiário
+    sexo, quant_sexo = trata_resposta(resultado['sexo'])
+    with graph_sexo:
+        fig4, ax4 = plt.subplots()
+        graph4 = ax4.bar(sexo, quant_sexo)
+        ax4.set_ylabel('Total de bolsas')
+        ax4.set_xticklabels(sexo, rotation=45)
+        ax4.set_title("Distribuição dos beneficiados por sexo")
+        ax4.bar_label(graph4)
+        st.pyplot(fig4)
+
+    graph_turno_curso, graph_pcd = st.columns(2)
+
+    # Gráfico com Turno do curso
+    turno_curso, quant_turno_curso = trata_resposta(resultado['turno_bolsa'])
+    with graph_turno_curso:
+        fig5, ax5 = plt.subplots()
+        graph5 = ax5.bar(turno_curso, quant_turno_curso)
+        ax5.set_ylabel('Total de bolsas')
+        ax5.set_xticklabels(turno_curso, rotation=45)
+        ax5.set_title("Distribuição de bolsas por turno")
+        ax5.bar_label(graph5)
+        st.pyplot(fig5)
+
+    # Gráfico com PCD ou não
+    pcd, quant_pcd = trata_resposta(resultado['pcd'])
+    with graph_pcd:
+        fig6, ax6 = plt.subplots()
+        graph6 = ax6.bar(pcd, quant_pcd)
+        ax6.set_ylabel('Total de bolsas')
+        ax6.set_xticklabels(pcd, rotation=45)
+        ax6.set_title("Distribuição de bolsas oferecidas")
+        ax6.bar_label(graph6)
+        st.pyplot(fig6)
+
 
 
 # Criar uma função para a página Regiões
-
-
 def regioes():
     st.title("Dados por regiões")
     st.write("Aqui estão os dados agrupados por regiões.")
@@ -176,7 +184,7 @@ def regioes():
     ax.bar(dados_cidades_estados['Cidade/Estado'],
            dados_cidades_estados['População'])
     ax.set_ylabel('População')
-    ax.set_xticklabels(dados_cidades_estados['Cidade/Estado'], rotation=90)
+    ax.set_xticklabels(dados_cidades_estados['Cidade/Estado'], rotation=45)
 
     # Exiba o gráfico no Streamlit
     st.pyplot(fig)
@@ -198,7 +206,7 @@ def universidade():
     ax.bar(dados_universidade['Universidade'],
            dados_universidade['População'])
     ax.set_ylabel('População')
-    ax.set_xticklabels(dados_universidade['Universidade'], rotation=90)
+    ax.set_xticklabels(dados_universidade['Universidade'], rotation=45)
 
 # Exibe o gráfico
     st.pyplot(fig)

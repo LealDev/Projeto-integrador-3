@@ -10,6 +10,7 @@ services:
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./prouni_2005_2019.csv:/var/lib/postgresql/dados/prouni_2005_2019.csv
+      - db-data:/var/lib/postgresql
     ports:
       - '5432:5432'
     restart: always
@@ -26,3 +27,5 @@ services:
     restart: always
     volumes:
       - ./sql:/var/streamlit/scripts/
+volumes:
+  db-data:

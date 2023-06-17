@@ -1,7 +1,6 @@
 SELECT
-    COUNT(*) AS total_linhas,
-    SUM(CASE WHEN MODALIDADE_ENSINO_BOLSA = 'BOLSA INTEGRAL' THEN 1 ELSE 0 END) AS bolsa_integral,
-    SUM(CASE WHEN MODALIDADE_ENSINO_BOLSA = 'BOLSA PARCIAL 50%' THEN 1 ELSE 0 END) AS bolsa_parcial,
-    SUM(CASE WHEN MODALIDADE_ENSINO_BOLSA = 'BOLSA COMPLEMENTAR 25%' THEN 1 ELSE 0 END) AS bolsa_complementar
+    TIPO_BOLSA,
+    COUNT(*)
 FROM
-    prouni_test;
+    public.universidade
+GROUP BY 1;

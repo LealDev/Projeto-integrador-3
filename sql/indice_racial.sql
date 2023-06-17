@@ -1,0 +1,5 @@
+SELECT 
+    RACA_BENEFICIARIO_BOLSA,
+    COUNT(*)
+FROM public.pessoa
+GROUP BY 1;
