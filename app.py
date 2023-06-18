@@ -166,25 +166,40 @@ def regioes():
     st.write('')
 
     # Adicione o filtro de data
-    data_inicio = st.date_input("Selecione a data de início")
-    data_fim = st.date_input("Selecione a data de fim")
+    data_inicio = st.number_input("Selecione o ano de início", min_value=2005, max_value=2019, value=2005)
+    data_fim = st.number_input("Selecione o ano de fim", min_value=2005, max_value=2019, value=2019)
 
-    # Crie o dataframe com dados das cidades/estados
-    dados_cidades_estados = pd.DataFrame({
-        'Cidade/Estado': ['São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Salvador', 'Fortaleza'],
-        'População': [12325232, 6747815, 2521564, 2872347, 2686612]
-    })
+    query = f'SELECT SIGLA_UF_BENEFICIARIO_BOLSA, COUNT(*) FROM public.pessoa as p LEFT JOIN public.universidade as u ON u.id_aluno = p.id WHERE u.ANO_CONCESSAO_BOLSA BETWEEN {data_inicio} AND {data_fim} GROUP BY 1'
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+    cur.execute(query)
+    # Fetch data from the database
+    resultado = cur.fetchall()
 
+    # Close the database connection
+    cur.close()
+    conn.close()
+    
+    index_regiao = []
+    data_regiao = []
+    for row in resultado:
+        index_regiao.append(row[0])
+        data_regiao.append(row[1])
+
+    # Crie o dataframe com dados dos estados
+    dados_estados = pd.DataFrame()
+    dados_estados['Estado'] = index_regiao
+    dados_estados['Bolsistas'] = data_regiao
     # Ordene o dataframe pela população
-    dados_cidades_estados = dados_cidades_estados.sort_values(
-        by='População', ascending=False)
+    dados_estados = dados_estados.sort_values(by='Bolsistas',ascending=False)
 
     # Crie o gráfico de barras
-    fig, ax = plt.subplots()
-    ax.bar(dados_cidades_estados['Cidade/Estado'],
-           dados_cidades_estados['População'])
-    ax.set_ylabel('População')
-    ax.set_xticklabels(dados_cidades_estados['Cidade/Estado'], rotation=45)
+    fig, ax = plt.subplots(figsize=(4, 3))
+    ax.bar(dados_estados['Estado'].values,
+           dados_estados['Bolsistas'])
+    ax.set_ylabel('Total de bolsistas')
+    ax.set_xticklabels(dados_estados['Estado'], rotation=90)
+
 
     # Exiba o gráfico no Streamlit
     st.pyplot(fig)
@@ -196,65 +211,136 @@ def universidade():
     st.write("Aqui estão os dados agrupados por universidades.")
     st.write('')
 
-# Cria o DataFrame das universidades
-    dados_universidade = pd.DataFrame({'Universidade': ['USP', 'UNICAMP', 'UFMG', 'UFRJ', 'UNESP', 'UFES', 'UFRGS'],
-                                       'População': [152365, 111236, 132560, 125404, 121056, 114202, 110236]})
-    dados_universidade = dados_universidade.sort_values(by='Universidade')
+    # Adicione o filtro de data
+    data_inicio = st.number_input("Selecione o ano de início", min_value=2005, max_value=2019, value=2005)
+    data_fim = st.number_input("Selecione o ano de fim", min_value=2005, max_value=2019, value=2019)
 
-# Cria o gráfico
+    query = f'SELECT NOME_IES_BOLSA, COUNT(*) FROM public.universidade WHERE ANO_CONCESSAO_BOLSA BETWEEN {data_inicio} AND {data_fim} GROUP BY 1 LIMIT 20'
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+    cur.execute(query)
+    # Fetch data from the database
+    resultado = cur.fetchall()
+
+    # Close the database connection
+    cur.close()
+    conn.close()
+    
+    index_uni = []
+    data_uni = []
+    for row in resultado:
+        index_uni.append(row[0])
+        data_uni.append(row[1])
+    # Cria o DataFrame das universidades
+    dados_universidade = pd.DataFrame()
+    dados_universidade['Universidade'] = index_uni
+    dados_universidade['Bolsas'] = data_uni
+    dados_universidade = dados_universidade.sort_values(by='Bolsas', ascending=False)
+
+    # Cria o gráfico
     fig, ax = plt.subplots(figsize=(4, 3))
     ax.bar(dados_universidade['Universidade'],
-           dados_universidade['População'])
-    ax.set_ylabel('População')
-    ax.set_xticklabels(dados_universidade['Universidade'], rotation=45)
+           dados_universidade['Bolsas'])
+    ax.set_ylabel('Bolsas Ofertadas')
+    ax.set_xticklabels(dados_universidade['Universidade'], rotation=90)
 
-# Exibe o gráfico
+    # Exibe o gráfico
     st.pyplot(fig)
 
-# Cria a função página Curso
 
+# Cria a função página Curso
 
 def curso():
     st.title("Dados por curso")
     st.write("Aqui estão os dados agrupados por curso.")
     st.write('')
 
-# Cria o DataFrame dos cursos
-    dados_curso = pd.DataFrame({'Curso': ['Medicina', 'Sisitemas de Informação', 'Marketing', 'Engenharia Civil', 'Direito', 'Administração', 'COntábeis'],
-                                'População': [152365, 111236, 132560, 125404, 121056, 114202, 110236]})
-    dados_curso = dados_curso.sort_values(by='Curso')
+    # Adicione o filtro de data
+    data_inicio = st.number_input("Selecione o ano de início", min_value=2005, max_value=2019, value=2005)
+    data_fim = st.number_input("Selecione o ano de fim", min_value=2005, max_value=2019, value=2019)
 
-# Cria o gráfico
+    query = f'SELECT c.NOME_CURSO_BOLSA, COUNT(*) FROM public.curso as c LEFT JOIN public.universidade as u ON u.id_curso = c.id  WHERE u.ANO_CONCESSAO_BOLSA BETWEEN {data_inicio} AND {data_fim} GROUP BY 1 LIMIT 20'
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+    cur.execute(query)
+    # Fetch data from the database
+    resultado = cur.fetchall()
+
+    # Close the database connection
+    cur.close()
+    conn.close()
+    
+    index_curso = []
+    data_curso = []
+    for row in resultado:
+        index_curso.append(row[0])
+        data_curso.append(row[1])
+
+    # Cria o DataFrame dos cursos
+    dados_idade = pd.DataFrame()
+    dados_idade['Idade'] = idade
+    dados_idade['sexo'] = sexo
+    dados_idade['quant'] = qnt_pessoa
+    buckets = [0,10,15,20,25,30,40,50,60]
+    dados_idade["grupo idade"] = pd.cut(dados_idade['Idade'], bins=buckets)
+    dados_idade_f = dados_idade[dados_idade['sexo']=='F'][['quant', 'grupo idade']].groupby(['grupo idade']).sum()
+    dados_idade_m = dados_idade[dados_idade['sexo']=='M'][['quant', 'grupo idade']].groupby(['grupo idade']).sum()
+    st.write(dados_idade_f)
+    st.write(dados_idade_m)
+
     fig, ax = plt.subplots(figsize=(4, 3))
-    ax.bar(dados_curso['Curso'],
-           dados_curso['População'])
-    ax.set_ylabel('População')
-    ax.set_xticklabels(dados_curso['Curso'], rotation=85)
+    ax.hist(buckets, dados_idade_f.values)
+    ax.set_ylabel('Bolsas Ofertadas')
+    ax.set_xticklabels(buckets, rotation=90)
 
-# Exibe o gráfico
+    # Exibe o gráfico
     st.pyplot(fig)
 
-    # Cria a função página Distribuição por idade
 
+# Cria a função página Distribuição por idade
 
 def idade():
     st.title("Dados por Idade")
     st.write("Aqui estão os dados agrupados por idade.")
     st.write('')
 
-# Cria o DataFrame das idades
-    dados_idade = pd.DataFrame({'Idade': ['18', '20', '25', '30', '32', '52', '40'],
-                                'População': [12540, 11230, 10360, 15962, 15350, 14650, 10230]})
+    query = f'SELECT IDADE, SEXO_BENEFICIARIO_BOLSA, COUNT(*) FROM public.pessoa GROUP BY 1, 2'
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+    cur.execute(query)
+    # Fetch data from the database
+    resultado = cur.fetchall()
 
+    # Close the database connection
+    cur.close()
+    conn.close()
+    
+    idade = []
+    sexo = []
+    qnt_pessoa = []
+    for row in resultado:
+        idade.append(row[0])
+        sexo.append(row[1])
+        qnt_pessoa.append(row[2])
 
-# Cria o gráfico
+    # Cria o DataFrame dos cursos
+    dados_idade = pd.DataFrame()
+    dados_idade['Idade'] = idade
+    dados_idade['sexo'] = sexo
+    dados_idade['quant'] = qnt_pessoa
+    dados_idade["grupo idade"] = pd.cut(dados_idade['Idade'], bins=[0,10,15,20,25,30,40,50,60])
+    dados_idade["piram"] = dados_idade[["quant","sexo"]].apply(lambda x: x["quant"] if x["sexo"]=="F" else x["quant"]*(-1),axis =1)
+    dados_idade = dados_idade.groupby(['grupo idade', 'sexo']).sum()
+    
+    # Cria o gráfico
     fig, ax = plt.subplots()
+    dados_idade['grupo idade'].value_counts(sort=False).plot.bar(rot=0, color="b", figsize=(6,4))
     ax.bar(dados_idade['Idade'],
            dados_idade['População'], color='orange')
     ax.set_ylabel('População')
     ax.set_xticklabels(dados_idade['Idade'], rotation=85)
 
-# Exibe o gráfico
+    # Exibe o gráfico
     st.pyplot(fig)
 
 
