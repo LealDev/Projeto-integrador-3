@@ -3,6 +3,7 @@ from streamlit_autorefresh import st_autorefresh
 import psycopg2
 import pandas as pd
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Dados Sisu", page_icon=":📉:", layout="wide")
@@ -58,20 +59,17 @@ def home():
         querys.append(find_file.read())
         find_file.close()
 
-    try:
-        conn = psycopg2.connect(**db_params)
-        cur = conn.cursor()
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
 
-        for query in querys:
-            cur.execute(query)
-            # Fetch data from the database
-            query_result.append(cur.fetchall())
-        
-        # Close the database connection
-        cur.close()
-        conn.close()
-    except:
-        st.write("aguarde")
+    for query in querys:
+        cur.execute(query)
+        # Fetch data from the database
+        query_result.append(cur.fetchall())
+    
+    # Close the database connection
+    cur.close()
+    conn.close()
 
     resultado = dict(zip(nome_query, query_result))
 
@@ -192,11 +190,9 @@ def regioes():
     dados_estados['Bolsistas'] = data_regiao
     # Ordene o dataframe pela população
     dados_estados = dados_estados.sort_values(by='Bolsistas',ascending=False)
-
     # Crie o gráfico de barras
     fig, ax = plt.subplots(figsize=(4, 3))
-    ax.bar(dados_estados['Estado'].values,
-           dados_estados['Bolsistas'])
+    ax.bar(dados_estados['Estado'].values.astype(str), dados_estados['Bolsistas'].astype(int))
     ax.set_ylabel('Total de bolsistas')
     ax.set_xticklabels(dados_estados['Estado'], rotation=90)
 
@@ -215,7 +211,7 @@ def universidade():
     data_inicio = st.number_input("Selecione o ano de início", min_value=2005, max_value=2019, value=2005)
     data_fim = st.number_input("Selecione o ano de fim", min_value=2005, max_value=2019, value=2019)
 
-    query = f'SELECT NOME_IES_BOLSA, COUNT(*) FROM public.universidade WHERE ANO_CONCESSAO_BOLSA BETWEEN {data_inicio} AND {data_fim} GROUP BY 1 LIMIT 20'
+    query = f'SELECT NOME_IES_BOLSA, COUNT(*) FROM public.universidade WHERE ANO_CONCESSAO_BOLSA BETWEEN {data_inicio} AND {data_fim} GROUP BY 1 ORDER BY 2 DESC LIMIT 20'
     conn = psycopg2.connect(**db_params)
     cur = conn.cursor()
     cur.execute(query)
@@ -259,7 +255,7 @@ def curso():
     data_inicio = st.number_input("Selecione o ano de início", min_value=2005, max_value=2019, value=2005)
     data_fim = st.number_input("Selecione o ano de fim", min_value=2005, max_value=2019, value=2019)
 
-    query = f'SELECT c.NOME_CURSO_BOLSA, COUNT(*) FROM public.curso as c LEFT JOIN public.universidade as u ON u.id_curso = c.id  WHERE u.ANO_CONCESSAO_BOLSA BETWEEN {data_inicio} AND {data_fim} GROUP BY 1 LIMIT 20'
+    query = f'SELECT c.NOME_CURSO_BOLSA, COUNT(*) FROM public.curso as c LEFT JOIN public.universidade as u ON u.id_curso = c.id  WHERE u.ANO_CONCESSAO_BOLSA BETWEEN {data_inicio} AND {data_fim} GROUP BY 1 ORDER BY 2 DESC LIMIT 20'
     conn = psycopg2.connect(**db_params)
     cur = conn.cursor()
     cur.execute(query)
@@ -276,22 +272,15 @@ def curso():
         index_curso.append(row[0])
         data_curso.append(row[1])
 
-    # Cria o DataFrame dos cursos
-    dados_idade = pd.DataFrame()
-    dados_idade['Idade'] = idade
-    dados_idade['sexo'] = sexo
-    dados_idade['quant'] = qnt_pessoa
-    buckets = [0,10,15,20,25,30,40,50,60]
-    dados_idade["grupo idade"] = pd.cut(dados_idade['Idade'], bins=buckets)
-    dados_idade_f = dados_idade[dados_idade['sexo']=='F'][['quant', 'grupo idade']].groupby(['grupo idade']).sum()
-    dados_idade_m = dados_idade[dados_idade['sexo']=='M'][['quant', 'grupo idade']].groupby(['grupo idade']).sum()
-    st.write(dados_idade_f)
-    st.write(dados_idade_m)
+    dados_curso = pd.DataFrame()
+    dados_curso['Curso'] = index_curso
+    dados_curso['Bolsas'] = data_curso
 
     fig, ax = plt.subplots(figsize=(4, 3))
-    ax.hist(buckets, dados_idade_f.values)
+    ax.bar(dados_curso['Curso'],
+           dados_curso['Bolsas'])
     ax.set_ylabel('Bolsas Ofertadas')
-    ax.set_xticklabels(buckets, rotation=90)
+    ax.set_xticklabels(dados_curso['Curso'], rotation=90)
 
     # Exibe o gráfico
     st.pyplot(fig)
@@ -304,7 +293,7 @@ def idade():
     st.write("Aqui estão os dados agrupados por idade.")
     st.write('')
 
-    query = f'SELECT IDADE, SEXO_BENEFICIARIO_BOLSA, COUNT(*) FROM public.pessoa GROUP BY 1, 2'
+    query = f'SELECT IDADE, SEXO_BENEFICIARIO_BOLSA, COUNT(*) FROM public.pessoa GROUP BY 1, 2 ORDER BY 1 ASC'
     conn = psycopg2.connect(**db_params)
     cur = conn.cursor()
     cur.execute(query)
@@ -323,23 +312,35 @@ def idade():
         sexo.append(row[1])
         qnt_pessoa.append(row[2])
 
-    # Cria o DataFrame dos cursos
     dados_idade = pd.DataFrame()
     dados_idade['Idade'] = idade
     dados_idade['sexo'] = sexo
     dados_idade['quant'] = qnt_pessoa
-    dados_idade["grupo idade"] = pd.cut(dados_idade['Idade'], bins=[0,10,15,20,25,30,40,50,60])
-    dados_idade["piram"] = dados_idade[["quant","sexo"]].apply(lambda x: x["quant"] if x["sexo"]=="F" else x["quant"]*(-1),axis =1)
-    dados_idade = dados_idade.groupby(['grupo idade', 'sexo']).sum()
     
     # Cria o gráfico
     fig, ax = plt.subplots()
-    dados_idade['grupo idade'].value_counts(sort=False).plot.bar(rot=0, color="b", figsize=(6,4))
-    ax.bar(dados_idade['Idade'],
-           dados_idade['População'], color='orange')
-    ax.set_ylabel('População')
-    ax.set_xticklabels(dados_idade['Idade'], rotation=85)
 
+    # Plot the bars for males
+    ax.barh(dados_idade['Idade'], dados_idade['quant'], align='center', height=0.5, color='blue', alpha=0.7, label='M')
+    ax.barh(dados_idade['Idade'], -dados_idade['quant'], align='center', height=0.5, color='red', alpha=0.7, label='F')
+
+    # Add labels and titles
+    ax.set_xlabel('Total de participantes')
+    ax.set_ylabel('Idade')
+
+    # Adjust the x-axis limits
+    ax.set_xlim([-max(dados_idade['quant'])-1, max(dados_idade['quant'])+1])
+
+    # Create a mirrored x-axis
+    ax.invert_yaxis()
+
+    # Remove spines
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    # Add legend
+    ax.legend()
+    
     # Exibe o gráfico
     st.pyplot(fig)
 
