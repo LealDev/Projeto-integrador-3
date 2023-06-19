@@ -1,5 +1,7 @@
 # Projeto Integrador 3
 
+[Vídeo de apresentação do sistema funcionando](https://youtu.be/o3sM_4FeOPQ)
+
 Essa é a documentação básica para execução da análise feita com base nos dados do prouni
 
 # Como inicializar esse projeto
